@@ -1,0 +1,48 @@
+from bs4 import BeautifulSoup
+import requests
+
+def get_page(url):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 KHTML,like Gecko) Chrome/80.0.3987.132 Safari/537.36'}
+    response = requests.get(url,headers= headers)
+
+    if not response.ok:
+        print("server responded:", response.status_code)
+    else:
+        soup = BeautifulSoup(response.text,"lxml")
+    return soup
+
+def get_detail_data(soup):
+
+    title = soup.find('h1', id="itemTitle").text.replace("Details about","")
+
+    p = soup.find('span',class_="notranslate").text.strip()
+    currency,price = p.split(" ")
+
+    sold = soup.find('span', class_="vi-qtyS-hot-red").find('a').text.split(" ")[0]
+
+
+    data = {"Title": title,
+            "Currency": currency,
+            "Price" : price,
+            "Total Sold": sold}
+    return data
+
+def get_index_data(soup):
+    links = soup.find_all('a', class_="s-item__link")
+
+    urls = [item.get('href') for item in links]
+    return urls
+
+
+def main():
+    url = "https://www.ebay.com/sch/i.html?_nkw=mens+watches&_pgn=1"
+
+    products = get_index_data(get_page(url))
+
+    for link in products:
+        data = get_detail_data(get_page(link))
+
+
+
+
+print(main())
